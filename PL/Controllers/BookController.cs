@@ -30,7 +30,7 @@ namespace IsraelitProTestTask.PL.Controllers
         public async Task<IEnumerable<BookView>> Get()
         {
             var items = await dataService.GetAllAsync();
-            return mapper.Map<IQueryable<BookDTO>, ICollection<BookView>>(items);
+            return mapper.Map<IEnumerable<BookDTO>, IEnumerable<BookView>>(items);
         }
         /// <summary>
         /// Get books by page
@@ -38,11 +38,11 @@ namespace IsraelitProTestTask.PL.Controllers
         /// <param name="pageParameters"> page number</param>
         /// <returns>List of books</returns>
         [HttpGet,Route("Page")]
-        public async Task<ICollection<BookView>> GetPage([FromBody] PageParametersView pageParameters)
+        public async Task<IEnumerable<BookView>> GetPage(int id)
         {
-            var page_p = mapper.Map<PageParametersView, PageParametersDTO>(pageParameters);
-            var items = await dataService.GetPage(page_p);
-            return mapper.Map<IQueryable<BookDTO>, ICollection<BookView>>(items);
+            var pageParameters = new PageParametersDTO() { PageNumber = id };
+            var items = await dataService.GetPage(pageParameters);
+            return mapper.Map<IEnumerable<BookDTO>, IEnumerable<BookView>>(items);
         }
         // GET: api/Autor/5
         /// <summary>
@@ -63,10 +63,10 @@ namespace IsraelitProTestTask.PL.Controllers
         /// <param name="autorName">Autor name</param>
         /// <returns></returns>
         [HttpGet, Route("ByAutor")]
-        public async Task<ICollection<BookView>> GetByAutor(string autorName)
+        public async Task<IEnumerable<BookView>> GetByAutor(string autorName)
         {
-            var items = await dataService.Find(x => x.BookAutor.Select(x => x.Name).Contains(autorName));
-            return mapper.Map<IQueryable<BookDTO>, ICollection<BookView>>(items);
+            var items = await dataService.Find(autorName);
+            return mapper.Map<IEnumerable<BookDTO>, IEnumerable<BookView>>(items);
         }
         // POST: api/Autor
         [HttpPost]
@@ -79,8 +79,8 @@ namespace IsraelitProTestTask.PL.Controllers
                 return NotFound();
         }
         // PUT: api/Autor/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] BookView value)
+        [HttpPut]
+        public async Task<IActionResult> Put([FromBody] BookView value)
         {
             var item = mapper.Map<BookView, BookDTO>(value);
             if (await dataService.UpdateAsync(item))

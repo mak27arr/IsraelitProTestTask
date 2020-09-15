@@ -3,6 +3,7 @@ using IsraelitProTestTask.DAL.Entities;
 using IsraelitProTestTask.DAL.Interface;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,10 +24,11 @@ namespace IsraelitProTestTask.DAL.Repositories
         }
         public async Task<bool> UpdateAsync(Book item)
         {
-            var objective = await db.Books.FindAsync(item);
-            if (objective != null)
+            var bd_item = await db.Books.FindAsync(item.Id);
+            if (bd_item != null)
             {
-                db.Entry(item).State = EntityState.Modified;
+                db.Entry(bd_item).State = EntityState.Modified;
+                db.Entry(bd_item).CurrentValues.SetValues(item);
                 return true;
             }
             else
@@ -51,28 +53,28 @@ namespace IsraelitProTestTask.DAL.Repositories
         {
             return await db.Books.AsNoTracking().Include(x => x.BookAutor).ThenInclude(x=>x.Autor).FirstOrDefaultAsync(x => x.Id == id);
         }
-        public async Task<IQueryable<Book>> GetAllAsync()
+        public async Task<IEnumerable<Book>> GetAllAsync()
         {
-            return await Task<IQueryable<Book>>.Factory.StartNew(() =>
+            return await Task<IEnumerable<Book>>.Factory.StartNew(() =>
             {
-                return db.Books.AsNoTracking().OrderBy(x => x.Id).Include(x => x.BookAutor).ThenInclude(x => x.Autor);
+                return db.Books.AsNoTracking().OrderBy(x => x.Id).Include(x => x.BookAutor).ThenInclude(x => x.Autor).ToList();
             });
         }
-        public async Task<IQueryable<Book>> FindAsync(Func<Book, bool> predicate)
+        public async Task<IEnumerable<Book>> FindAsync(Func<Book, bool> predicate)
         {
-            return await Task<IQueryable<Book>>.Factory.StartNew(() =>
+            return await Task<IEnumerable<Book>>.Factory.StartNew(() =>
             {
-                return db.Books.AsNoTracking().Where(predicate).OrderBy(x => x.Id).AsQueryable().Include(x => x.BookAutor).ThenInclude(x => x.Autor);
+                return db.Books.AsNoTracking().Where(predicate).OrderBy(x => x.Id).AsQueryable().Include(x => x.BookAutor).ThenInclude(x => x.Autor).ToList();
             });
         }
 
-        public async Task<IQueryable<Book>> GetPage(PageParameters pageParameters)
+        public async Task<IEnumerable<Book>> GetPage(PageParameters pageParameters)
         {
-                return await Task<IQueryable<Book>>.Factory.StartNew(() =>
+                return await Task<IEnumerable<Book>>.Factory.StartNew(() =>
                 {
                     return db.Books.AsNoTracking().OrderBy(on => on.Id)
                         .Skip((pageParameters.PageNumber - 1) * pageParameters.PageSize)
-                        .Take(pageParameters.PageSize).AsQueryable().Include(x => x.BookAutor).ThenInclude(x => x.Autor);
+                        .Take(pageParameters.PageSize).AsQueryable().Include(x => x.BookAutor).ThenInclude(x => x.Autor).ToList();
                 });
         }
     }

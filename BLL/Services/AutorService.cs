@@ -5,6 +5,7 @@ using IsraelitProTestTask.BLL.Interfaces;
 using IsraelitProTestTask.DAL.Entities;
 using IsraelitProTestTask.DAL.Interface;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -17,17 +18,19 @@ namespace IsraelitProTestTask.BLL.Services
         public AutorService(IUnitOfWork uow)
         {
             Database = uow;
-            mapper = new MapperConfiguration(cfg => { 
+            mapper = new MapperConfiguration(cfg => {
+                cfg.CreateMap<PageParametersDTO, PageParameters>();
                 cfg.CreateMap<Autor, AutorDTO>().ForMember(res => res.BookAutor, opt => opt.MapFrom(dto => dto.BookAutor.Select(x => x.Book).ToList()));
-                cfg.CreateMap<AutorDTO, Autor>().ForMember(res => res.BookAutor, opt => opt.MapFrom(dto => dto.BookAutor.Select(x => new BookAutor() { Book = x; Autor = res;})));
+                cfg.CreateMap<AutorDTO, Autor>().ForMember(res => res.BookAutor, opt => opt.MapFrom(dto => dto.BookAutor.Select(x => new BookAutor() { BookId = x.Id, AutorId = dto.Id })));
                 cfg.CreateMap<Book, BookDTO>().ForMember(res => res.BookAutor, opt => opt.Ignore());
                 cfg.CreateMap<BookDTO, Book>().ForMember(res => res.BookAutor, opt => opt.Ignore());
             }).CreateMapper();
         }
         public async Task<bool> AddAsync(AutorDTO item)
         {
-            var objective = mapper.Map<AutorDTO, Autor>(item);
-            var rez = await Database.AutorsRepository.CreateAsync(objective);
+            item.Id = 0;
+            var db_item = mapper.Map<AutorDTO, Autor>(item);
+            var rez = await Database.AutorsRepository.CreateAsync(db_item);
             return rez && await Database.SaveAsync();
         }
         public async Task<bool> DeleteAsync(int? id)
@@ -56,10 +59,10 @@ namespace IsraelitProTestTask.BLL.Services
                 throw new ValidationException("Not found", "");
             return mapper.Map<Autor, AutorDTO>(item);
         }
-        public async Task<IQueryable<AutorDTO>> GetAllAsync()
+        public async Task<IEnumerable<AutorDTO>> GetAllAsync()
         {
             var autors = await Database.AutorsRepository.GetAllAsync();
-            return mapper.Map<IQueryable<Autor>, IQueryable<AutorDTO>>(autors);
+            return mapper.Map<IEnumerable<Autor>, IEnumerable<AutorDTO>>(autors);
         }
         public async Task<bool> UpdateAsync(AutorDTO item)
         {
@@ -75,17 +78,16 @@ namespace IsraelitProTestTask.BLL.Services
                 throw new ValidationException("Cant update autor", "");
             }
         }
-        public async Task<IQueryable<AutorDTO>> GetPage(PageParametersDTO pageParameters)
+        public async Task<IEnumerable<AutorDTO>> GetPage(PageParametersDTO pageParameters)
         {
             var bd_pageParameters = mapper.Map<PageParametersDTO, PageParameters>(pageParameters);
             var rez = await Database.AutorsRepository.GetPage(bd_pageParameters);
-            return mapper.Map<IQueryable<Autor>, IQueryable<AutorDTO>>(rez);
+            return mapper.Map<IEnumerable<Autor>, List<AutorDTO>>(rez);
         }
-        public async Task<IQueryable<AutorDTO>> Find(Func<AutorDTO, bool> predict)
+        public async Task<IEnumerable<AutorDTO>> Find(string autorName)
         {
-            var predict_db = mapper.Map<Func<AutorDTO, bool>, Func<Autor, bool>>(predict);
-            var items = await Database.AutorsRepository.FindAsync(predict_db);
-            return mapper.Map<IQueryable<Autor>, IQueryable<AutorDTO>>(items);
+            var items = await Database.AutorsRepository.FindAsync(x => x.Name.Contains(autorName));
+            return mapper.Map<IEnumerable<Autor>, List<AutorDTO>>(items);
         }
     }
 }

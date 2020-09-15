@@ -8,10 +8,10 @@ namespace IsraelitProTestTask.DAL.Interface
 {
     public interface IRepository<T> where T : class
     {
-        Task<IQueryable<T>> GetAllAsync();
+        Task<IEnumerable<T>> GetAllAsync();
         Task<T> GetAsync(int id);
-        Task<IQueryable<T>> FindAsync(Func<T, Boolean> predicate);
-        Task<IQueryable<T>> GetPage(PageParameters pageParameters);
+        Task<IEnumerable<T>> FindAsync(Func<T, Boolean> predicate);
+        Task<IEnumerable<T>> GetPage(PageParameters pageParameters);
         Task<bool> CreateAsync(T item);
         Task<bool> UpdateAsync(T item);
         Task<bool> DeleteAsync(int id);
