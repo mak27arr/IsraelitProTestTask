@@ -8,6 +8,5 @@ namespace IsraelitProTestTask.BLL.DTO
         public string Name {get;set;}
         public DateTime? Year { get; set; }
         public ICollection<BookDTO> BookAutor { get; set; }
-        public object Created { get; internal set; }
     }
 }

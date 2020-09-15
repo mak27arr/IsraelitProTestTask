@@ -18,7 +18,13 @@ namespace IsraelitProTestTask.BLL.Services
         public BookService(IUnitOfWork uow)
         {
             Database = uow;
-            mapper = new MapperConfiguration(cfg => cfg.CreateMap<Book, BookDTO>()).CreateMapper();
+            mapper = new MapperConfiguration(cfg => { 
+                cfg.CreateMap<Book, BookDTO>().ForMember(res => res.BookAutor, opt => opt.MapFrom(dto => dto.BookAutor.Select(x => x.Autor).ToList()));
+                cfg.CreateMap<BookDTO, Book>().ForMember(res => res.BookAutor, opt => opt.MapFrom(dto => dto.BookAutor.Select(x => x.Autor).ToList()));
+                cfg.CreateMap<Autor, AutorDTO>().ForMember(res => res.BookAutor, opt => opt.Ignore());
+                cfg.CreateMap<AutorDTO, Autor>().ForMember(res => res.BookAutor, opt => opt.Ignore());
+                //cfg.CreateMap<IQueryable<Book>, IQueryable<BookDTO>>().ForMember(res => res.BookAutor, opt => opt.MapFrom(dto => dto.BookAutor.Select(x => x.Autor)));
+            }).CreateMapper();
         }
         public async Task<bool> AddAsync(BookDTO item)
         {

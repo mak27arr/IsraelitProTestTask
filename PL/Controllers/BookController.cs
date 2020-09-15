@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using AutoMapper;
 using IsraelitProTestTask.BLL.DTO;
@@ -18,10 +19,14 @@ namespace IsraelitProTestTask.PL.Controllers
         public BookController(IDataService<BookDTO> service)
         {
             dataService = service;
-            mapper = new MapperConfiguration(cfg => cfg.CreateMap<BookDTO, BookView>()).CreateMapper();
+            mapper = new MapperConfiguration(cfg => { cfg.CreateMap<BookDTO, BookView>();
+                cfg.CreateMap<BookView, BookDTO>();
+                cfg.CreateMap<AutorDTO, AutorView>().ForMember(x=>x.BookAutor,y=>y.Ignore());
+                cfg.CreateMap<AutorView, AutorDTO>().ForMember(x => x.BookAutor, y => y.Ignore());
+            }).CreateMapper();
         }
         // GET: api/Autor
-        [HttpGet]
+        [HttpGet, Route("All")]
         public async Task<IEnumerable<BookView>> Get()
         {
             var items = await dataService.GetAllAsync();
@@ -32,46 +37,65 @@ namespace IsraelitProTestTask.PL.Controllers
         /// </summary>
         /// <param name="pageParameters"> page number</param>
         /// <returns>List of books</returns>
-        [HttpGet]
-        public async Task<ICollection<BookView>> GetPage([FromQuery] PageParametersView pageParameters)
+        [HttpGet,Route("Page")]
+        public async Task<ICollection<BookView>> GetPage([FromBody] PageParametersView pageParameters)
         {
             var page_p = mapper.Map<PageParametersView, PageParametersDTO>(pageParameters);
             var items = await dataService.GetPage(page_p);
             return mapper.Map<IQueryable<BookDTO>, ICollection<BookView>>(items);
         }
         // GET: api/Autor/5
-        [HttpGet("{id}", Name = "Get")]
+        /// <summary>
+        /// Get book by id
+        /// </summary>
+        /// <param name="id">Book Id</param>
+        /// <returns></returns>
+        [HttpGet]
         public async Task<BookView> Get(int id)
         {
             var item = await dataService.GetAsync(id);
             return mapper.Map<BookDTO, BookView>(item);
         }
         // GET: api/Autor/5
-        [HttpGet("{id}", Name = "GetByAutor")]
-        public async Task<ICollection<BookView>> GetByAutor(string name)
+        /// <summary>
+        /// Returns books where autor name is autorName
+        /// </summary>
+        /// <param name="autorName">Autor name</param>
+        /// <returns></returns>
+        [HttpGet, Route("ByAutor")]
+        public async Task<ICollection<BookView>> GetByAutor(string autorName)
         {
-            var items = await dataService.Find(x => x.BookAutor.Select(x => x.Name).Contains(name));
+            var items = await dataService.Find(x => x.BookAutor.Select(x => x.Name).Contains(autorName));
             return mapper.Map<IQueryable<BookDTO>, ICollection<BookView>>(items);
         }
         // POST: api/Autor
         [HttpPost]
-        public async Task<bool> Post([FromBody] BookView value)
+        public async Task<IActionResult> Post([FromBody] BookView value)
         {
             var item = mapper.Map<BookView, BookDTO>(value);
-            return await dataService.AddAsync(item);
+            if (await dataService.AddAsync(item))
+                return Ok();
+            else
+                return NotFound();
         }
         // PUT: api/Autor/5
         [HttpPut("{id}")]
-        public async Task<bool> Put(int id, [FromBody] BookView value)
+        public async Task<IActionResult> Put(int id, [FromBody] BookView value)
         {
             var item = mapper.Map<BookView, BookDTO>(value);
-            return await dataService.UpdateAsync(item);
+            if (await dataService.UpdateAsync(item))
+                return Ok();
+            else
+                return NotFound();
         }
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
-        public async Task<bool> Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            return await dataService.DeleteAsync(id);
+            if (await dataService.DeleteAsync(id))
+                return Ok();
+            else
+                return NotFound();
         }
     }
 }

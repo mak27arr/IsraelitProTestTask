@@ -1,3 +1,5 @@
+using Autofac.Extensions.DependencyInjection;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
@@ -7,14 +9,19 @@ namespace IsraelitProTestTask
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            CreateWebHost(args).Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        public static IHost CreateWebHost(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                });
+                }).Build();
+        public static IWebHost BuildWebHost(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>()
+                .Build();
     }
 }

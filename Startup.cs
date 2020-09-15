@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Autofac;
 using IsraelitProTestTask.BLL.Util;
@@ -27,7 +28,8 @@ namespace IsraelitProTestTask
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Objective API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Library API", Version = "v1" });
+                c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
                 // Set the comments path for the Swagger JSON and UI.
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
@@ -50,7 +52,7 @@ namespace IsraelitProTestTask
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Books API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Library API V1");
                 c.RoutePrefix = string.Empty;
             });
             app.UseHttpsRedirection();

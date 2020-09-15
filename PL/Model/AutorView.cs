@@ -8,6 +8,5 @@ namespace IsraelitProTestTask.PL.Model
         public string Name {get;set;}
         public DateTime? Year { get; set; }
         public ICollection<BookView> BookAutor { get; set; }
-        public object Created { get; internal set; }
     }
 }

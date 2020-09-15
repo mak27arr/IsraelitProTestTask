@@ -5,7 +5,6 @@ using IsraelitProTestTask.BLL.Interfaces;
 using IsraelitProTestTask.DAL.Entities;
 using IsraelitProTestTask.DAL.Interface;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,7 +17,12 @@ namespace IsraelitProTestTask.BLL.Services
         public AutorService(IUnitOfWork uow)
         {
             Database = uow;
-            mapper = new MapperConfiguration(cfg => cfg.CreateMap<Autor, AutorDTO>()).CreateMapper();
+            mapper = new MapperConfiguration(cfg => { 
+                cfg.CreateMap<Autor, AutorDTO>().ForMember(res => res.BookAutor, opt => opt.MapFrom(dto => dto.BookAutor.Select(x => x.Book).ToList()));
+                cfg.CreateMap<AutorDTO, Autor>().ForMember(res => res.BookAutor, opt => opt.MapFrom(dto => dto.BookAutor.Select(x => new BookAutor() { Book = x; Autor = res;})));
+                cfg.CreateMap<Book, BookDTO>().ForMember(res => res.BookAutor, opt => opt.Ignore());
+                cfg.CreateMap<BookDTO, Book>().ForMember(res => res.BookAutor, opt => opt.Ignore());
+            }).CreateMapper();
         }
         public async Task<bool> AddAsync(AutorDTO item)
         {

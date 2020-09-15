@@ -12,6 +12,5 @@ namespace IsraelitProTestTask.DAL.Entities
         public string Name {get;set;}
         public DateTime? Year { get; set; }
         public ICollection<BookAutor> BookAutor { get; set; }
-        public object Created { get; internal set; }
     }
 }
